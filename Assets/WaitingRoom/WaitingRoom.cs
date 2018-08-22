@@ -1,11 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class WaitingRoom : MonoBehaviour
 {
     public GameObject cameraPrefab;
     public GameObject characterPrefab;
     public float fadeTime = 0.5f;
+    public RuntimeAnimatorController animatorContoroller;
 
     ScreenOverlay[] screenOverlays;
     float overlayIntensity = 1.0f;
@@ -19,9 +21,10 @@ public class WaitingRoom : MonoBehaviour
         var go = (GameObject)Instantiate(cameraPrefab);
         screenOverlays = go.GetComponentsInChildren<ScreenOverlay>();
 
-        // Instantiate the character.
-        go = (GameObject)Instantiate(characterPrefab);
+        var path = Application.dataPath + "/vrmModels/model.vrm";
+        go = VRM.VRMImporter.LoadFromPath(path);
         animator = go.GetComponent<Animator>();
+        animator.runtimeAnimatorController = animatorContoroller;
     }
 
     IEnumerator Start()
@@ -41,13 +44,14 @@ public class WaitingRoom : MonoBehaviour
 
     void Update()
     {
-        start |= Input.GetButtonDown("Jump") | Input.GetMouseButtonDown(0);
+        start = Input.anyKeyDown;
         
         if (start)
         {
             // White out.
             overlayIntensity = Mathf.Min(1.0f, overlayIntensity + Time.deltaTime / fadeTime);
             if (overlayIntensity == 1.0f) Application.LoadLevel(1);
+            SceneManager.LoadScene("Main");
         }
         else
         {

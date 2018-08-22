@@ -6,11 +6,13 @@ public class StageDirector : MonoBehaviour
     // Control options.
     public bool ignoreFastForward = true;
 
+    public RuntimeAnimatorController animatorController;
+
     // Prefabs.
+    public GameObject spray;
     public GameObject musicPlayerPrefab;
     public GameObject mainCameraRigPrefab;
     public GameObject[] prefabsNeedsActivation;
-    public GameObject[] prefabsOnTimeline;
     public GameObject[] miscPrefabs;
 
     // Camera points.
@@ -39,9 +41,24 @@ public class StageDirector : MonoBehaviour
         for (var i = 0; i < prefabsNeedsActivation.Length; i++)
             objectsNeedsActivation[i] = (GameObject)Instantiate(prefabsNeedsActivation[i]);
 
-        objectsOnTimeline = new GameObject[prefabsOnTimeline.Length];
-        for (var i = 0; i < prefabsOnTimeline.Length; i++)
-            objectsOnTimeline[i] = (GameObject)Instantiate(prefabsOnTimeline[i]);
+        var path = Application.dataPath + "/vrmModels/model.vrm";
+        var go = VRM.VRMImporter.LoadFromPath(path);
+        var animator = go.GetComponent<Animator>();
+        animator.runtimeAnimatorController = animatorController;
+        animator.applyRootMotion = true;
+
+        var cameraTarget = Instantiate(new GameObject("Empty")) as GameObject;
+        cameraTarget.name = "CameraTarget";
+        cameraTarget.transform.parent = animator.GetBoneTransform(HumanBodyBones.Head);
+        cameraTarget.transform.position = cameraTarget.transform.parent.transform.position;
+
+        var leftSpray = Instantiate(spray) as GameObject;
+        leftSpray.transform.parent = animator.GetBoneTransform(HumanBodyBones.LeftHand);
+        leftSpray.transform.position = leftSpray.transform.parent.transform.position;
+
+        var rightSpray = Instantiate(spray);
+        rightSpray.transform.parent = animator.GetBoneTransform(HumanBodyBones.LeftHand);
+        rightSpray.transform.position = rightSpray.transform.parent.transform.position;
 
         foreach (var p in miscPrefabs) Instantiate(p);
     }
